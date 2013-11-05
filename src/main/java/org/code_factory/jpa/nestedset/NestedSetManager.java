@@ -11,6 +11,7 @@ package org.code_factory.jpa.nestedset;
 
 import java.util.Collection;
 import java.util.List;
+
 import javax.persistence.EntityManager;
 
 /**
@@ -19,8 +20,10 @@ import javax.persistence.EntityManager;
  * nested set tree.
  *
  * @author Roman Borschel <roman@code-factory.org>
+ * @author gabbol
  */
 public interface NestedSetManager {
+    
     /**
      * Clears the NestedSetManager, removing all managed nodes from the <tt>NestedSetManager</tt>.
      * Any entities wrapped by such nodes are not detached from the underlying <tt>EntityManager</tt>.
@@ -39,50 +42,18 @@ public interface NestedSetManager {
     <T extends NodeInfo> Node<T> createRoot(T root);
 
     /**
-     * Fetches a complete tree, returning the root node of the tree.
-     *
-     * @param <T>
-     * @param clazz
-     * @param rootId
-     * @return The root node of the tree.
-     */
-    <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz, int rootId);
-
-    /**
-     * Fetches the complete tree, returning the root node of the tree.
-     *
-     * @param <T>
-     * @param clazz
-     * @param rootId
-     * @return The root node of the tree.
-     */
-    <T extends NodeInfo> Node<T> fetchTree(Class<T> clazz);
-
-    /**
-     * Fetches a complete tree and returns the tree as a list.
-     *
-     * @param <T>
-     * @param clazz
-     * @return The tree in form of a list, starting with the root node.
-     */
-    <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz);
-
-    /**
-     * Fetches a complete tree and returns the tree as a list.
-     *
-     * @param <T>
-     * @param clazz
-     * @param rootId
-     * @return The tree in form of a list, starting with the root node.
-     */
-    <T extends NodeInfo> List<Node<T>> fetchTreeAsList(Class<T> clazz, int rootId);
-
-    /**
      * Gets the EntityManager used by this NestedSetManager.
      *
      * @return The EntityManager.
      */
     EntityManager getEntityManager();
+    
+    /**
+     * Sets the EntityManager used by this NestedSetManager.
+     *
+     * @param The EntityManager.
+     */
+    void setEntityManager(EntityManager entityManager);
 
     /**
      * Gets the node that represents the given NodeInfo instance in the tree.
@@ -98,5 +69,102 @@ public interface NestedSetManager {
      *
      * @return The collection of nodes.
      */
-    Collection<Node<?>> getNodes();
+    <T extends NodeInfo> Collection<Node<T>> getNodes();
+    
+    /**
+     * remove all nodes
+     */
+    void deleteAll();
+    
+    /**
+     * returns root nodes
+     *
+     * @return The collection of nodes.
+     */
+    <T extends NodeInfo> List<Node<T>> getRoots();
+    
+      
+    /**
+     * Unwraps node list, returning wrapped object list.
+     *
+     * @return The wrapped object list.
+     */
+    <T extends NodeInfo> List<T> unwrap(Collection<Node<T>> list);
+    
+    /**
+     * Gets all ancestors which have the property linkedTypeClass and linkedId
+     * 
+     * @return list a list of nodes
+     * @param linkedTypeClass Class type of the linked entity   
+     * @param linkedId the ID of the entity linked  
+     * 
+     */
+    <T extends NodeInfo> Collection<Node<T>> getAncestors(Class<?> linkedTypeClass, Object linkedId);
+
+    /**
+     * Gets all children (first level) which have the property linkedTypeClass and linkedId
+     * 
+     * @return list a node list
+     * @param linkedTypeClass Class type of the entity linked  
+     * @param linkedId the ID of the entity linked  
+     * 
+     */
+    <T extends NodeInfo> Collection<Node<T>> getChildren(Class<?> linkedTypeClass, Object linkedId);
+
+    /**
+     * Gets all descendants which have the property linkedTypeClass and linkedId
+     * 
+     * @return list a node list
+     * @param linkedTypeClass Class type of the entity linked  
+     * @param linkedId the ID of the entity linked  
+     * 
+     */
+    <T extends NodeInfo> Collection<Node<T>> getDescendants(Class<?> linkedTypeClass, Object linkedId);
+
+    /**
+     * Gets all parents which have the property linkedTypeClass and linkedId
+     * 
+     * @return list a node list
+     * @param linkedTypeClass Class type of the entity linked  
+     * @param linkedId the ID of the entity linked  
+     * 
+     */
+    <T extends NodeInfo> Collection<Node<T>> getParents(Class<?> linkedTypeClass, Object linkedId);
+    
+    /**
+     * Search all the nodes which have the property linkedTypeClass and linkedId
+     * 
+     * @return list a node list
+     * @param filter to apply to the list of nodes
+     * 
+     */
+    <T extends NodeInfo>  List<Node<T>> find(Class<?> linkedTypeClass, Object linkedId);
+
+    /**
+     * Gets a list of linked entities given the list of NodeInfo 
+     * The list can be filtered
+     * 
+     * @param list a node list
+     * @param filter to apply to the list of nodes
+     * @return The collection of linked entities.
+     * 
+     */
+    <T extends NodeInfo, E>  List<E> lookupLinkedObjects(Collection<Node<T>>  list, TypeFilter<E> filter);
+
+    /**
+     * Gets the linked entity give the node
+     * 
+     * @param a node
+     * @return The linked entity.
+     * 
+     */
+    <T extends NodeInfo, E> E lookupLinkedObject(Node<T> node);
+    
+    /**
+     * Returns a node builder to create a Nested Set 
+     * 
+     * @return a node builder
+     * 
+     */
+    NodeBuilder createNodeBuilder();
 }

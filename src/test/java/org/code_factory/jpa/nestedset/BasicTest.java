@@ -9,12 +9,13 @@
 
 package org.code_factory.jpa.nestedset;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+
 import org.code_factory.jpa.nestedset.model.Category;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
 
 /**
  * @author Roman Borschel <roman@code-factory.org>
@@ -41,6 +42,7 @@ public class BasicTest extends FunctionalNestedSetTest {
      *
      */
     private void createBasicTree() {
+    	JpaNestedSetManager nsm = getManager("category");
         this.progCat = new Category();
         this.progCat.setName("Programming");
 
@@ -59,7 +61,32 @@ public class BasicTest extends FunctionalNestedSetTest {
         nsm.clear();
     }
 
+    
+//    @Test public void testA() {
+//    	
+//    	em.getTransaction().begin();
+//    	C c = new C();
+//    	em.persist(c);
+//        em.getTransaction().commit();
+//        em.close();
+//
+//        em = createEntityManager();
+//    	em.getTransaction().begin();
+//    	A a = new A();
+//    	B b1 = new B();
+//    	B b2 = new B();
+//    	//em.merge(c);
+//    	b1.setC(c);
+//    	b2.setC(c);
+//    	a.getBs().add(b1);
+//    	a.getBs().add(b2);
+//    	em.persist(a);
+//        em.getTransaction().commit();
+//        
+//    }
+    
     @Test public void testCreateRoot() {
+    	JpaNestedSetManager nsm = getManager("category");
         Category cat = new Category();
         cat.setName("Java");
 
@@ -77,13 +104,14 @@ public class BasicTest extends FunctionalNestedSetTest {
     }
 
     @Test public void testFetchTree() {
+    	JpaNestedSetManager nsm = getManager("category");
         this.createBasicTree();
 
-        List<Node<Category>> tree = nsm.fetchTreeAsList(Category.class);
+        Collection<Node<Category>> tree = nsm.getNodes();
         assert tree.size() == 3;
         Iterator<Node<Category>> iter = tree.iterator();
         for (int i = 0; i < 3; i++) {
-            Node node = iter.next();
+            Node node = iter.next(); 
             if (i == 0) {
                 assert 1 == node.getLeftValue();
                 assert 6 == node.getRightValue();
@@ -101,6 +129,7 @@ public class BasicTest extends FunctionalNestedSetTest {
     }
 
     @Test public void testBasicTreeNavigation() {
+    	JpaNestedSetManager nsm = getManager("category");
         this.createBasicTree();
 
         Category progCat2 = em.find(Category.class, this.progCat.getId());
@@ -130,10 +159,12 @@ public class BasicTest extends FunctionalNestedSetTest {
     }
 
     @Test public void testAddingNodesToTree() {
+    	 
+    	JpaNestedSetManager nsm = getManager("category");
         this.createBasicTree();
 
-        assert 0 == this.nsm.getNodes().size();
-        Node<Category> root = this.nsm.getNode(em.find(Category.class, this.progCat.getId()));
+        assert 0 == nsm.getNodes().size();
+        Node<Category> root = nsm.getNode(em.find(Category.class, this.progCat.getId()));
 
         // Assert basic tree state, a Programming category with 2 child categories.
         assert 1 == root.getLeftValue();
@@ -141,7 +172,7 @@ public class BasicTest extends FunctionalNestedSetTest {
         assert 2 == root.getChildren().size();
         assert 2 == root.getChildren().size();
 
-        assert 3 == this.nsm.getNodes().size();
+        assert 3 == nsm.getNodes().size();
 
         // Add PHP category under Programming
         em.getTransaction().begin();
@@ -159,7 +190,7 @@ public class BasicTest extends FunctionalNestedSetTest {
         em.getTransaction().begin();
         Category jeeCat = new Category();
         jeeCat.setName("Java EE");
-        Node<Category> javaNode = this.nsm.getNode(em.find(Category.class, this.javaCat.getId()));
+        Node<Category> javaNode = nsm.getNode(em.find(Category.class, this.javaCat.getId()));
         javaNode.addChild(jeeCat);
         em.getTransaction().commit();
 
@@ -171,18 +202,19 @@ public class BasicTest extends FunctionalNestedSetTest {
         assert 5 == javaNode.getRightValue();
         assert 10 == root.getRightValue();
 
-        assert 5 == this.nsm.getNodes().size();
+        assert 5 == nsm.getNodes().size();
     }
 
     /**
      * Tests creating new nodes and moving them around in a tree.
      */
     @Test public void testMovingNodes() {
+    	JpaNestedSetManager nsm = getManager("category");
         this.createBasicTree();
 
         em.getTransaction().begin();
         
-        Node<Category> progNode = this.nsm.getNode(em.find(Category.class, this.progCat.getId()));
+        Node<Category> progNode = nsm.getNode(em.find(Category.class, this.progCat.getId()));
 
         // Create a new WPF category, placing it under "Programming" first.
         /*
@@ -206,7 +238,7 @@ public class BasicTest extends FunctionalNestedSetTest {
                           |
                          WPF
         */
-        Node<Category> netNode = this.nsm.getNode(em.find(Category.class, this.netCat.getId()));
+        Node<Category> netNode = nsm.getNode(em.find(Category.class, this.netCat.getId()));
         wpfNode.moveAsLastChildOf(netNode);
         assert 4 == netNode.getLeftValue();
         assert 7 == netNode.getRightValue();
@@ -238,7 +270,7 @@ public class BasicTest extends FunctionalNestedSetTest {
                   |       |
                  EJB     WPF
         */
-        Node<Category> javaNode = this.nsm.getNode(em.find(Category.class, this.javaCat.getId()));
+        Node<Category> javaNode = nsm.getNode(em.find(Category.class, this.javaCat.getId()));
         ejbNode.moveAsLastChildOf(javaNode);
         assert 3 == ejbNode.getLeftValue();
         assert 4 == ejbNode.getRightValue();
@@ -253,11 +285,12 @@ public class BasicTest extends FunctionalNestedSetTest {
 
     @Test
     public void testDeleteNode() {
+    	JpaNestedSetManager nsm = getManager("category");
         this.createBasicTree();
         
         em.getTransaction().begin();
         // fetch the tree
-        Node<Category> progNode = nsm.fetchTree(Category.class, this.progCat.getRootValue());
+        Node progNode = nsm.getRoots().get(0) ;// getRoots().get(0); //. fetchTree(Category.class, this.progCat.getRootValue());
         assertEquals(progNode.getChildren().size(), 2);
         assert 1 == progNode.getLeftValue();
         assert 6 == progNode.getRightValue();

@@ -9,12 +9,10 @@
 
 package org.code_factory.jpa.nestedset;
 
-import net.jcip.annotations.Immutable;
 
 /**
  * @author Roman Borschel <roman@code-factory.org>
  */
-@Immutable
 class Key {
     private final Class<?> clazz;
     private final int id;

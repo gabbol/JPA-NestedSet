@@ -17,73 +17,75 @@ import org.testng.annotations.Test;
  */
 public class MultiRootNodeTest extends FunctionalNestedSetTest {
 
-    @Test
-    public void testCreateTrees() {
-        Category javaCat = new Category();
-        javaCat.setName("Java");
-        javaCat.setRootValue(1);
+	@Test
+	public void testCreateTrees() {
+		JpaNestedSetManager nsm = getManager("category");
+		
+		Category javaCat = new Category();
+		javaCat.setName("Java");
+		javaCat.setRootValue(1);
 
-        Category netCat = new Category();
-        netCat.setName(".NET");
-        netCat.setRootValue(2);
+		Category netCat = new Category();
+		netCat.setName(".NET");
+		netCat.setRootValue(2);
 
-        Category phpCat = new Category();
-        phpCat.setName("PHP");
-        phpCat.setRootValue(3);
+		Category phpCat = new Category();
+		phpCat.setName("PHP");
+		phpCat.setRootValue(3);
 
-        em.getTransaction().begin();
-        nsm.createRoot(javaCat);
-        nsm.createRoot(netCat);
-        nsm.createRoot(phpCat);
-        em.getTransaction().commit();
+		em.getTransaction().begin();
+		nsm.createRoot(javaCat);
+		nsm.createRoot(netCat);
+		nsm.createRoot(phpCat);
+		em.getTransaction().commit();
 
-        assert 1 == javaCat.getLeftValue();
-        assert 2 == javaCat.getRightValue();
-        assert 1 == netCat.getLeftValue();
-        assert 2 == netCat.getRightValue();
-        assert 1 == phpCat.getLeftValue();
-        assert 2 == phpCat.getRightValue();
+		assert 1 == javaCat.getLeftValue();
+		assert 2 == javaCat.getRightValue();
+		assert 1 == netCat.getLeftValue();
+		assert 2 == netCat.getRightValue();
+		assert 1 == phpCat.getLeftValue();
+		assert 2 == phpCat.getRightValue();
 
-        em.getTransaction().begin();
-        Node<Category> javaNode = nsm.getNode(javaCat);
-        Category ejbCat = new Category();
-        ejbCat.setName("EJB");
-        Node<Category> ejbNode = javaNode.addChild(ejbCat);
-        em.getTransaction().commit();
+		em.getTransaction().begin();
+		Node<Category> javaNode = nsm.getNode(javaCat);
+		Category ejbCat = new Category();
+		ejbCat.setName("EJB");
+		Node<Category> ejbNode = javaNode.addChild(ejbCat);
+		em.getTransaction().commit();
 
-        assert 1 == javaCat.getLeftValue();
-        assert 2 == ejbCat.getLeftValue();
-        assert 3 == ejbCat.getRightValue();
-        assert 1 == ejbCat.getLevel();
-        assert 1 == ejbCat.getRootValue();
-        assert 4 == javaCat.getRightValue();
-        assert 1 == netCat.getLeftValue();
-        assert 2 == netCat.getRightValue();
-        assert 1 == phpCat.getLeftValue();
-        assert 2 == phpCat.getRightValue();
+		assert 1 == javaCat.getLeftValue();
+		assert 2 == ejbCat.getLeftValue();
+		assert 3 == ejbCat.getRightValue();
+		assert 1 == ejbCat.getLevel();
+		assert 1 == ejbCat.getRootValue();
+		assert 4 == javaCat.getRightValue();
+		assert 1 == netCat.getLeftValue();
+		assert 2 == netCat.getRightValue();
+		assert 1 == phpCat.getLeftValue();
+		assert 2 == phpCat.getRightValue();
 
-        // move between trees
+		// move between trees
 
-        em.getTransaction().begin();
-        Node<Category> netNode = nsm.getNode(netCat);
-        ejbNode.moveAsLastChildOf(netNode);
-        // Refresh to make sure that we check the database state, not just the in-memory state.
-        em.refresh(javaCat);
-        em.refresh(netCat);
-        em.refresh(phpCat);
-        em.getTransaction().commit();
+		em.getTransaction().begin();
+		Node<Category> netNode = nsm.getNode(netCat);
+		ejbNode.moveAsLastChildOf(netNode);
+		// Refresh to make sure that we check the database state, not just the
+		// in-memory state.
+		em.refresh(javaCat);
+		em.refresh(netCat);
+		em.refresh(phpCat);
+		em.getTransaction().commit();
 
-        assert 1 == javaCat.getLeftValue();
-        assert 2 == javaCat.getRightValue();
-        assert 1 == netNode.getLeftValue();
-        assert 2 == ejbNode.getLeftValue();
-        assert 3 == ejbNode.getRightValue();
-        assert 2 == ejbNode.getRootValue();
-        assert 4 == netNode.getRightValue();
-        assert 1 == phpCat.getLeftValue();
-        assert 2 == phpCat.getRightValue();
+		assert 1 == javaCat.getLeftValue();
+		assert 2 == javaCat.getRightValue();
+		assert 1 == netNode.getLeftValue();
+		assert 2 == ejbNode.getLeftValue();
+		assert 3 == ejbNode.getRightValue();
+		assert 2 == ejbNode.getRootValue();
+		assert 4 == netNode.getRightValue();
+		assert 1 == phpCat.getLeftValue();
+		assert 2 == phpCat.getRightValue();
 
-    }
+	}
 
-    
 }
